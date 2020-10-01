@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Your Info</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container text-center">
+      <h1>Your Inforfation</h1>
+      <form action="/addProduct" method="POST">
+        <input type="text" class="form-control mb-3" placeholder="Your name" name="name">
+        <input type="email" class="form-control mb-3" placeholder="Email" name="email">
+        <input type="number" class="form-control mb-3" placeholder="Phone" name="phone">
+        <input type="submit" class="form-control mb-3 btn-primary" value="submit">
+      </form>
+      <div id="products"></div>
+      <div id="update"></div>
+    </div>
+
+      <script>
+          function loadAllProduct(){
+            fetch('/products')
+          .then(res => res.json())
+          .then(products => {
+              console.log(products);
+              const container = document.getElementById('products');
+              container.innerHTML = '';
+              products.forEach(pd => {
+                  const p = document.createElement("p");
+                  p.innerHTML = `<strong>Name: ${pd.name}</strong>, Email: ${pd.email}, Phone: ${pd.phone}
+                  <button class="btn btn-secondary" onclick="loadProduct('${pd._id}')">Update</button>
+                  <button class="btn btn-danger" onclick="deleteProduct(event, '${pd._id}')">Delete</button>
+                  `;
+                  container.appendChild(p);
+              })
+          })
+          };
+          loadAllProduct();
+
+          function loadProduct(id) {
+            fetch(`products/${id}`)
+            .then(res => res.json())
+            .then(data => {
+              const update = document.getElementById('update');
+              update.innerHTML =`
+              <h3>Update: ${data._id}</h3>
+              Email: <input type="email" class="form-control" value="${data.email}" id="email"/>
+              Phone: <input type="number" class="form-control" value="${data.phone}" id="phone"/>
+              <button onclick="updateProduct('${data._id}')" id="update" class="btn btn-primary mt-3">Submit</button>
+              `;
+            })
+          }
+
+          function updateProduct(id){
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const product = {id, email, phone};
+            fetch(`/update/${id}`,{
+              method: 'PATCH',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(product)
+            })
+            .then(res => res.json())
+            .then(data => {
+              if(data){
+                loadAllProduct();
+              }
+            })
+          }
+          function deleteProduct(event, id){
+            fetch(`/delete/${id}`,{
+              method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(result => {
+              if(result){
+                event.target.parentNode.style.display = 'none';
+              }
+            })
+           
+          }
+      </script>
+  </body>
+</html>
